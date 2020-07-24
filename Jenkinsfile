@@ -1,6 +1,6 @@
 pipeline {
   agent {
-    label 'java-1.8'
+    label 'java-8'
   }
   environment {
     ProjectName = 'CodeBuildJenkinsPlugin'
