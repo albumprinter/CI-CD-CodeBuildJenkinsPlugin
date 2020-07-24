@@ -18,7 +18,7 @@ pipeline {
     stage('Publish') {
       steps {
         script {
-          generic.publish(packageName: env.ProjectName, version: env.Version, pathToFile: "$workspace/target/codebuilder-cloud.hpi")
+          generic.publish(packageName: env.ProjectName, version: env.Version, pathToFile: "$workspace/target/codebuilder-cloud.hpi", fileExtension: "hpi")
         }
       }    
     }
@@ -28,7 +28,7 @@ pipeline {
       }
       steps {
         script {
-          generic.promote(packageName: env.ProjectName, version: env.Version)
+          generic.promote(packageName: env.ProjectName, version: env.Version, fileExtension: "hpi")
         }
       }
     }
