@@ -4,10 +4,6 @@
 
 [Build][buildlink] | [Artifacts][artifactslink]
 
-| A-DTAP      | P-DTAP      |
-| ----------- | ----------- |
-| [Url][apia] | [Url][apip] |
-
 [buildlink]: https://jenkins.albelli.com/job/CICD/job/CI-CD-CodeBuildJenkinsPlugin/
 [artifactslink]: https://artifactory.albelli.com/ui/repos/tree/General/generic-dev-local%2FCodeBuildJenkinsPlugin
 
