@@ -3,6 +3,7 @@ package dev.lsegal.jenkins.codebuilder;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.concurrent.Future;
+import java.util.List;
 
 import javax.annotation.Nonnull;
 
@@ -77,7 +78,7 @@ public class CodeBuilderComputer extends AbstractCloudComputer<CodeBuilderAgent>
   public void taskCompleted(Executor executor, Queue.Task task, long durationMS) {
     super.taskCompleted(executor, task, durationMS);
     LOGGER.info("[CodeBuilder]: [{}]: Task in job '{}' completed in {}ms", this, task.getFullDisplayName(), durationMS);
-    if (cloud.isTerminateAgent()) {
+    if (cloud != null && cloud.isTerminateAgent()) {
     	gracefulShutdown();
     }
   }
@@ -88,7 +89,7 @@ public class CodeBuilderComputer extends AbstractCloudComputer<CodeBuilderAgent>
     super.taskCompletedWithProblems(executor, task, durationMS, problems);
     LOGGER.error("[CodeBuilder]: [{}]: Task in job '{}' completed with problems in {}ms", this,
         task.getFullDisplayName(), durationMS, problems);
-    if (cloud.isTerminateAgent()) {
+    if (cloud != null && cloud.isTerminateAgent()) {
       gracefulShutdown();
     }
   }

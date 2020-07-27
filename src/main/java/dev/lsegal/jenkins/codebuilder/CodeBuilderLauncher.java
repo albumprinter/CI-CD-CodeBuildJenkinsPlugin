@@ -29,6 +29,7 @@ public class CodeBuilderLauncher extends JNLPLauncher {
 
   private final CodeBuilderCloud cloud;
   private boolean launched;
+  private SlaveComputer computer;
 
   /**
    * Constructor for CodeBuilderLauncher.
@@ -44,6 +45,10 @@ public class CodeBuilderLauncher extends JNLPLauncher {
   @Override
   public boolean isLaunchSupported() {
     return !launched;
+  }
+
+  public boolean isOnline() {
+    return this.computer.isOnline();
   }
 
   /** {@inheritDoc} */
