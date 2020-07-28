@@ -152,7 +152,7 @@ public class CodeBuilderCloud extends Cloud {
 
     LOGGER.info("[CodeBuilder]: Removing all OFFLINE CodeBuilder nodes...");
     for (final Node n : nodes) {
-      if (n instanceof CodeBuilderAgent && ((CodeBuilderAgent) n).createComputer().isOffline()) {
+      if (n instanceof CodeBuilderAgent && ((CodeBuilderAgent) n).getChannel() == null) {
         try {
           LOGGER.error("[CodeBuilder]: Found OFFLINE agent '{}'", n.getDisplayName());
           ((CodeBuilderAgent) n).terminate();
