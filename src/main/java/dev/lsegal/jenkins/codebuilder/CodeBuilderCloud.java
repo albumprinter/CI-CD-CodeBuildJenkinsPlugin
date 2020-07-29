@@ -368,7 +368,7 @@ public class CodeBuilderCloud extends Cloud {
     }
 
     removeOfflineNodes();
-    long stillProvisioning = numStillProvisioning();
+    long stillProvisioning = numStillProvisioning(labelName);
     long numToLaunch = Math.max(excessWorkload - stillProvisioning, 0);
     LOGGER.info("[CodeBuilder]: Provisioning {} nodes for label '{}'", numToLaunch, labelName);
 
@@ -393,7 +393,7 @@ public class CodeBuilderCloud extends Cloud {
    * Find the number of {@link CodeBuilderAgent} instances still connecting to
    * Jenkins host.
    */
-  private long numStillProvisioning() {
+  private long numStillProvisioning(String labelName) {
     long stillProvisioning = jenkins().getNodes().stream()
       // Get all `CodeBuilderAgent`s as `CodeBuilderAgent`s
       .filter(CodeBuilderAgent.class::isInstance).map(CodeBuilderAgent.class::cast)
