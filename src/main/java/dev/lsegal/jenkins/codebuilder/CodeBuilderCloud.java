@@ -152,7 +152,7 @@ public class CodeBuilderCloud extends Cloud {
 
     LOGGER.info("[CodeBuilder]: Removing all OFFLINE CodeBuilder nodes...");
     for (final Node n : nodes) {
-      if (n instanceof CodeBuilderAgent && ((CodeBuilderAgent) n).getChannel() == null) {
+      if (n instanceof CodeBuilderAgent && ((CodeBuilderAgent) n).getComputer().isOffline() && !((CodeBuilderAgent) n).getLauncher().isLaunchSupported()) {
         try {
           LOGGER.error("[CodeBuilder]: Found OFFLINE agent '{}'", n.getDisplayName());
           ((CodeBuilderAgent) n).terminate();
@@ -370,12 +370,11 @@ public class CodeBuilderCloud extends Cloud {
     removeOfflineNodes();
     long stillProvisioning = numStillProvisioning();
     long numToLaunch = Math.max(excessWorkload - stillProvisioning, 0);
-    LOGGER.info("[CodeBuilder]: Provisioning {} nodes for label '{}' ({} already provisioning)", numToLaunch, labelName,
-        stillProvisioning);
+    LOGGER.info("[CodeBuilder]: Provisioning {} nodes for label '{}'", numToLaunch, labelName);
 
     for (int i = 0; i < numToLaunch; i++) {
       final String suffix = RandomStringUtils.randomAlphabetic(4);
-      final String displayName = String.format("%s.%s.cb-%s", projectName, labelName, suffix);
+      final String displayName = String.format("codebuild.%s.%s", labelName, suffix);
       final CodeBuilderCloud cloud = this;
       final Future<Node> nodeResolver = Computer.threadPoolForRemoting.submit(() -> {
         CodeBuilderLauncher launcher = new CodeBuilderLauncher(cloud);
@@ -395,8 +394,15 @@ public class CodeBuilderCloud extends Cloud {
    * Jenkins host.
    */
   private long numStillProvisioning() {
-    return jenkins().getNodes().stream().filter(CodeBuilderAgent.class::isInstance).map(CodeBuilderAgent.class::cast)
-        .filter(a -> !a.getLauncher().isLaunchSupported()).count();
+    long stillProvisioning = jenkins().getNodes().stream()
+      // Get all `CodeBuilderAgent`s as `CodeBuilderAgent`s
+      .filter(CodeBuilderAgent.class::isInstance).map(CodeBuilderAgent.class::cast)
+      // Get all those that haven't succesfully launched yet (those for which 'launching' is 'supported')
+      .filter(a -> a.getLauncher().isLaunchSupported()).count();
+    if (stillProvisioning > 0) {
+      LOGGER.info("[CodeBuilder]: Found {} nodes still provisioning for label '{}'", labelName,stillProvisioning);
+    }
+    return stillProvisioning;
   }
 
   /** {@inheritDoc} */

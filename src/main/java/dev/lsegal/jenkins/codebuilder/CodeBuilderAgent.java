@@ -79,7 +79,7 @@ class CodeBuilderAgent extends AbstractCloudSlave {
 
       try {
         StopExecutors(((CodeBuilderComputer) getComputer()).getExecutors());
-        LOGGER.info("[CodeBuilder]: Stopping CodeBuild build ID {} running as OFFLINE agent {}", buildId, getDisplayName());
+        LOGGER.info("[CodeBuilder]: Stopping CodeBuild build ID {} running as agent {}", buildId, getDisplayName());
         cloud.getClient().stopBuild(new StopBuildRequest().withId(buildId));
       } catch (NullPointerException e) {
         LOGGER.info("[CodeBuilder]: It looks like CodeBuild build ID {} was already stopped.", buildId);

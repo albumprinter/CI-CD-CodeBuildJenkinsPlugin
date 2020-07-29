@@ -44,11 +44,8 @@ public class CodeBuilderLauncher extends JNLPLauncher {
   /** {@inheritDoc} */
   @Override
   public boolean isLaunchSupported() {
+    // This will be true until the launcher has successfully launched
     return !launched;
-  }
-
-  public boolean isOnline() {
-    return this.computer.isOnline();
   }
 
   /** {@inheritDoc} */
