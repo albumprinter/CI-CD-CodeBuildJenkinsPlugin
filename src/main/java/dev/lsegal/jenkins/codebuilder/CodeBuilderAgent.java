@@ -25,6 +25,7 @@ class CodeBuilderAgent extends AbstractCloudSlave {
   private static final Logger LOGGER = LoggerFactory.getLogger(CodeBuilderAgent.class);
   private static final long serialVersionUID = -6722929807051421839L;
   private final transient CodeBuilderCloud cloud;
+  private final String label;
 
   /**
    * Creates a new CodeBuilderAgent node that provisions a
@@ -36,11 +37,12 @@ class CodeBuilderAgent extends AbstractCloudSlave {
    * @throws hudson.model.Descriptor$FormException if any.
    * @throws java.io.IOException                   if any.
    */
-  public CodeBuilderAgent(@Nonnull CodeBuilderCloud cloud, @Nonnull String name, @Nonnull ComputerLauncher launcher)
+  public CodeBuilderAgent(@Nonnull CodeBuilderCloud cloud, @Nonnull String name, @Nonnull ComputerLauncher launcher, @Nonnull String label)
       throws Descriptor.FormException, IOException {
     super(name, "AWS CodeBuild Agent", "/build", 1, Mode.NORMAL, cloud.getLabel(), launcher,
         new CloudRetentionStrategy(cloud.getAgentTimeout() / 60 + 1), Collections.emptyList());
     this.cloud = cloud;
+    this.label = label;
   }
 
   /**
@@ -50,6 +52,10 @@ class CodeBuilderAgent extends AbstractCloudSlave {
    */
   public CodeBuilderCloud getCloud() {
     return cloud;
+  }
+
+  public String getLabel() {
+    return label;
   }
 
   /** {@inheritDoc} */

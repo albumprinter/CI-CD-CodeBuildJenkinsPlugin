@@ -378,7 +378,7 @@ public class CodeBuilderCloud extends Cloud {
       final CodeBuilderCloud cloud = this;
       final Future<Node> nodeResolver = Computer.threadPoolForRemoting.submit(() -> {
         CodeBuilderLauncher launcher = new CodeBuilderLauncher(cloud);
-        CodeBuilderAgent agent = new CodeBuilderAgent(cloud, displayName, launcher);
+        CodeBuilderAgent agent = new CodeBuilderAgent(cloud, displayName, launcher, labelName);
         jenkins().addNode(agent);
         return agent;
       });
@@ -397,10 +397,12 @@ public class CodeBuilderCloud extends Cloud {
     long stillProvisioning = jenkins().getNodes().stream()
       // Get all `CodeBuilderAgent`s as `CodeBuilderAgent`s
       .filter(CodeBuilderAgent.class::isInstance).map(CodeBuilderAgent.class::cast)
+      // Get all those who match the label name
+      .filter(a -> a.getLabel() == labelName)
       // Get all those that haven't succesfully launched yet (those for which 'launching' is 'supported')
       .filter(a -> a.getLauncher().isLaunchSupported()).count();
     if (stillProvisioning > 0) {
-      LOGGER.info("[CodeBuilder]: Found {} nodes still provisioning for label '{}'", labelName,stillProvisioning);
+      LOGGER.info("[CodeBuilder]: Found {} nodes still provisioning for label '{}'", stillProvisioning, labelName);
     }
     return stillProvisioning;
   }
