@@ -3,7 +3,6 @@ package dev.lsegal.jenkins.codebuilder;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.concurrent.Future;
-import java.util.List;
 
 import javax.annotation.Nonnull;
 
