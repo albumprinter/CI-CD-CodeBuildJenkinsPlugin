@@ -141,6 +141,34 @@ public class CodeBuilderCloud extends Cloud {
     }
   }
 
+  /**
+   * Clear all Offline CodeBuilder nodes.
+   */
+  private static void removeOfflineNodes() {
+    List<Node> nodes = jenkins().getNodes();
+    if (nodes.size() == 0) {
+      return;
+    }
+
+    LOGGER.info("[CodeBuilder]: Removing all OFFLINE CodeBuilder nodes...");
+    for (final Node n : nodes) {
+      if (n instanceof CodeBuilderAgent) {
+        try {
+          CodeBuilderAgent agent = ((CodeBuilderAgent) n);
+          if (agent.getComputer().isOffline() && !agent.getLauncher().isLaunchSupported()) {
+            LOGGER.error("[CodeBuilder]: Agent '{}' is offline and has already been launched. Removing it...", n.getDisplayName());
+            agent.terminate();
+            LOGGER.error("[CodeBuilder]: Agent '{}' was removed successfully", n.getDisplayName());
+          }
+        } catch (NullPointerException e) {
+          LOGGER.error("[CodeBuilder]: Error determining whether agent '{}' is offline or not. Computer or launcher were null...", n.getDisplayName());
+        } catch (InterruptedException | IOException e) {
+          LOGGER.error("[CodeBuilder]: Failed to terminate OFFLINE agent '{}'", n.getDisplayName(), e);
+        }
+      }
+    }
+  }
+
   /** {@inheritDoc} */
   @Override
   public String toString() {
@@ -344,18 +372,18 @@ public class CodeBuilderCloud extends Cloud {
       return list;
     }
 
-    long stillProvisioning = numStillProvisioning();
+    removeOfflineNodes();
+    long stillProvisioning = numStillProvisioning(labelName);
     long numToLaunch = Math.max(excessWorkload - stillProvisioning, 0);
-    LOGGER.info("[CodeBuilder]: Provisioning {} nodes for label '{}' ({} already provisioning)", numToLaunch, labelName,
-        stillProvisioning);
+    LOGGER.info("[CodeBuilder]: Provisioning {} nodes for label '{}'", numToLaunch, labelName);
 
     for (int i = 0; i < numToLaunch; i++) {
       final String suffix = RandomStringUtils.randomAlphabetic(4);
-      final String displayName = String.format("%s.cb-%s", projectName, suffix);
+      final String displayName = String.format("codebuild.%s.%s", labelName, suffix);
       final CodeBuilderCloud cloud = this;
       final Future<Node> nodeResolver = Computer.threadPoolForRemoting.submit(() -> {
         CodeBuilderLauncher launcher = new CodeBuilderLauncher(cloud);
-        CodeBuilderAgent agent = new CodeBuilderAgent(cloud, displayName, launcher);
+        CodeBuilderAgent agent = new CodeBuilderAgent(cloud, displayName, launcher, labelName);
         jenkins().addNode(agent);
         return agent;
       });
@@ -370,22 +398,24 @@ public class CodeBuilderCloud extends Cloud {
    * Find the number of {@link CodeBuilderAgent} instances still connecting to
    * Jenkins host.
    */
-  private long numStillProvisioning() {
-    return jenkins().getNodes().stream().filter(CodeBuilderAgent.class::isInstance).map(CodeBuilderAgent.class::cast)
-        .filter(a -> !a.getLauncher().isLaunchSupported()).count();
+  private long numStillProvisioning(String labelName) {
+    long stillProvisioning = jenkins().getNodes().stream()
+      // Get all `CodeBuilderAgent`s as `CodeBuilderAgent`s
+      .filter(CodeBuilderAgent.class::isInstance).map(CodeBuilderAgent.class::cast)
+      // Get all those who match the label name
+      .filter(a -> a.getLabel() == labelName)
+      // Get all those that haven't succesfully launched yet (those for which 'launching' is 'supported')
+      .filter(a -> a.getLauncher().isLaunchSupported()).count();
+    if (stillProvisioning > 0) {
+      LOGGER.info("[CodeBuilder]: Found {} nodes still provisioning for label '{}'", stillProvisioning, labelName);
+    }
+    return stillProvisioning;
   }
 
   /** {@inheritDoc} */
   @Override
-  public boolean canProvision(Label label) {
-    LOGGER.info("[CodeBuilder]: Check if can provision node for label '{}'", label);
-    boolean canProvision = label == null ? true : label.matches(Arrays.asList(new LabelAtom(getLabel())));
-    if (canProvision) {
-      LOGGER.info("[CodeBuilder]: Label '{}' matches current label '{}'. Node will be provisioned...", label, getLabel());
-    }
-    else {
-      LOGGER.info("[CodeBuilder]: Label '{}' DOESN'T MATCH current label '{}'. Node WON'T provisioned...", label, getLabel());
-    }
+  public boolean canProvision(Label label) {    
+    boolean canProvision = label == null ? true : label.matches(Arrays.asList(new LabelAtom(getLabel())));  
     return canProvision;
   }
 

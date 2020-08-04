@@ -2,6 +2,7 @@ package dev.lsegal.jenkins.codebuilder;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.List;
 
 import javax.annotation.Nonnull;
 
@@ -13,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import hudson.model.Descriptor;
+import hudson.model.Executor;
 import hudson.model.TaskListener;
 import hudson.slaves.AbstractCloudComputer;
 import hudson.slaves.AbstractCloudSlave;
@@ -23,6 +25,7 @@ class CodeBuilderAgent extends AbstractCloudSlave {
   private static final Logger LOGGER = LoggerFactory.getLogger(CodeBuilderAgent.class);
   private static final long serialVersionUID = -6722929807051421839L;
   private final transient CodeBuilderCloud cloud;
+  private final String label;
 
   /**
    * Creates a new CodeBuilderAgent node that provisions a
@@ -34,11 +37,12 @@ class CodeBuilderAgent extends AbstractCloudSlave {
    * @throws hudson.model.Descriptor$FormException if any.
    * @throws java.io.IOException                   if any.
    */
-  public CodeBuilderAgent(@Nonnull CodeBuilderCloud cloud, @Nonnull String name, @Nonnull ComputerLauncher launcher)
+  public CodeBuilderAgent(@Nonnull CodeBuilderCloud cloud, @Nonnull String name, @Nonnull ComputerLauncher launcher, @Nonnull String label)
       throws Descriptor.FormException, IOException {
     super(name, "AWS CodeBuild Agent", "/build", 1, Mode.NORMAL, cloud.getLabel(), launcher,
         new CloudRetentionStrategy(cloud.getAgentTimeout() / 60 + 1), Collections.emptyList());
     this.cloud = cloud;
+    this.label = label;
   }
 
   /**
@@ -50,10 +54,22 @@ class CodeBuilderAgent extends AbstractCloudSlave {
     return cloud;
   }
 
+  public String getLabel() {
+    return label;
+  }
+
   /** {@inheritDoc} */
   @Override
   public AbstractCloudComputer<CodeBuilderAgent> createComputer() {
     return new CodeBuilderComputer(this);
+  }
+
+  private void StopExecutors(List<Executor> executors) {
+    for (final Executor executor : executors) {
+      LOGGER.info("[CodeBuilder]: Interrupting executor {} from agent {}", executor.getNumber(), getDisplayName());
+      executor.interrupt();
+      LOGGER.info("[CodeBuilder]: Executor interrupted successfully");
+    }
   }
 
   /** {@inheritDoc} */
@@ -68,12 +84,15 @@ class CodeBuilderAgent extends AbstractCloudSlave {
       }
 
       try {
-        LOGGER.info("[CodeBuilder]: Stopping build ID: {}", buildId);
+        StopExecutors(((CodeBuilderComputer) getComputer()).getExecutors());
+        LOGGER.info("[CodeBuilder]: Stopping CodeBuild build ID {} running as agent {}", buildId, getDisplayName());
         cloud.getClient().stopBuild(new StopBuildRequest().withId(buildId));
+      } catch (NullPointerException e) {
+        LOGGER.info("[CodeBuilder]: It looks like CodeBuild build ID {} was already stopped.", buildId);
       } catch (ResourceNotFoundException e) {
         // this is fine. really.
       } catch (Exception e) {
-        LOGGER.error("[CodeBuilder]: Failed to stop build ID: {}", buildId, e);
+        LOGGER.error("[CodeBuilder]: Failed to stop CodeBuild build ID {}", buildId, e);
       }
     }
   }
