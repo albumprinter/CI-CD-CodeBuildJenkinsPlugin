@@ -155,9 +155,8 @@ public class CodeBuilderCloud extends Cloud {
       if (n instanceof CodeBuilderAgent) {
         try {
           CodeBuilderAgent agent = ((CodeBuilderAgent) n);
-          LOGGER.error("[CodeBuilder]: Checking if agent '{}' is offline ({}) and has already been launched ({})...", n.getDisplayName(), agent.getComputer().isOffline(), !agent.getLauncher().isLaunchSupported());
           if (agent.getComputer().isOffline() && !agent.getLauncher().isLaunchSupported()) {
-            LOGGER.error("[CodeBuilder]: Found OFFLINE agent '{}'", n.getDisplayName());
+            LOGGER.error("[CodeBuilder]: Agent '{}' is offline and has already been launched. Removing it...", n.getDisplayName());
             agent.terminate();
             LOGGER.error("[CodeBuilder]: Agent '{}' was removed successfully", n.getDisplayName());
           }
