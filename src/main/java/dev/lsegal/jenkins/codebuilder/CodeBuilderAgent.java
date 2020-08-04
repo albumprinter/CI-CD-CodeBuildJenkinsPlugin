@@ -66,7 +66,7 @@ class CodeBuilderAgent extends AbstractCloudSlave {
 
   private void StopExecutors(List<Executor> executors) {
     for (final Executor executor : executors) {
-      LOGGER.info("[CodeBuilder]: Interrupting executor {} from OFFLINE agent {}", executor.getNumber(), getDisplayName());
+      LOGGER.info("[CodeBuilder]: Interrupting executor {} from agent {}", executor.getNumber(), getDisplayName());
       executor.interrupt();
       LOGGER.info("[CodeBuilder]: Executor interrupted successfully");
     }
