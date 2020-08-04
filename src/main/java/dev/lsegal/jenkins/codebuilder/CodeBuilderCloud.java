@@ -161,7 +161,7 @@ public class CodeBuilderCloud extends Cloud {
             LOGGER.error("[CodeBuilder]: Agent '{}' was removed successfully", n.getDisplayName());
           }
         } catch (NullPointerException e) {
-          LOGGER.error("[CodeBuilder]: Error determining whether agent '{}' is offline or not. Computer or launcher were null...", n.getDisplayName(), e);
+          LOGGER.error("[CodeBuilder]: Error determining whether agent '{}' is offline or not. Computer or launcher were null...", n.getDisplayName());
         } catch (InterruptedException | IOException e) {
           LOGGER.error("[CodeBuilder]: Failed to terminate OFFLINE agent '{}'", n.getDisplayName(), e);
         }
