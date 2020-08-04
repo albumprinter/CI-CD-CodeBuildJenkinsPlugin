@@ -152,11 +152,17 @@ public class CodeBuilderCloud extends Cloud {
 
     LOGGER.info("[CodeBuilder]: Removing all OFFLINE CodeBuilder nodes...");
     for (final Node n : nodes) {
-      if (n instanceof CodeBuilderAgent && ((CodeBuilderAgent) n).getComputer().isOffline() && !((CodeBuilderAgent) n).getLauncher().isLaunchSupported()) {
+      if (n instanceof CodeBuilderAgent) {
         try {
-          LOGGER.error("[CodeBuilder]: Found OFFLINE agent '{}'", n.getDisplayName());
-          ((CodeBuilderAgent) n).terminate();
-          LOGGER.error("[CodeBuilder]: Agent '{}' was removed successfully", n.getDisplayName());
+          CodeBuilderAgent agent = ((CodeBuilderAgent) n);
+          if (agent.getComputer() != null && agent.getLauncher() != null) {
+            //If agent is offline and it has already been launched before (launch is not supported)
+            if (agent.getComputer().isOffline() && !agent.getLauncher().isLaunchSupported()) {
+              LOGGER.error("[CodeBuilder]: Found OFFLINE agent '{}'", n.getDisplayName());
+              agent.terminate();
+              LOGGER.error("[CodeBuilder]: Agent '{}' was removed successfully", n.getDisplayName());
+            }
+          }
         } catch (InterruptedException | IOException e) {
           LOGGER.error("[CodeBuilder]: Failed to terminate OFFLINE agent '{}'", n.getDisplayName(), e);
         }
