@@ -1,5 +1,7 @@
 # CI-CD-CodeBuildJenkinsPlugin
 
+![Jenkins status (turn on VPN first)](https://jenkins.albelli.com/buildStatus/icon?job=Infrastructure/CICD/CI-CD-CodeBuildJenkinsPlugin/master)
+
 ## Resources
 
 [Build][buildlink] | [Artifacts][artifactslink]
