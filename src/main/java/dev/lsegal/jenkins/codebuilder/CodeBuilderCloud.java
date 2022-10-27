@@ -450,8 +450,12 @@ public class CodeBuilderCloud extends Cloud {
       return DEFAULT_AGENT_TIMEOUT;
     }
 
-    public String getDefaultComputeType() {
-      return DEFAULT_COMPUTE_TYPE;
+    public String doFillComputeTypeItems() {
+      final ListBoxModel options = new ListBoxModel();
+      options.add("BUILD_GENERAL1_SMALL");
+      options.add("BUILD_GENERAL1_MEDIUM");
+      options.add("BUILD_GENERAL1_LARGE");      
+      return options;
     }
 
     public boolean getDefaultTerminateAgent() {
