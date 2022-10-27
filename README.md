@@ -4,7 +4,7 @@
 
 [Build][buildlink] | [Artifacts][artifactslink]
 
-[buildlink]: https://jenkins.albelli.com/job/CICD/job/CI-CD-CodeBuildJenkinsPlugin/
+[buildlink]: https://jenkins.albelli.com/view/Cloud/job/Infrastructure/job/CICD/job/CI-CD-CodeBuildJenkinsPlugin
 [artifactslink]: https://artifactory.albelli.com/ui/repos/tree/General/generic-dev-local%2FCodeBuildJenkinsPlugin
 
 ## Dependencies

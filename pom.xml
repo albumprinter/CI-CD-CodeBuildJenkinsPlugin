@@ -5,6 +5,7 @@
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>plugin</artifactId>
         <version>3.25</version>        
+        <relativePath>../</relativePath>
     </parent>
 
     <groupId>dev.lsegal.jenkins</groupId>
