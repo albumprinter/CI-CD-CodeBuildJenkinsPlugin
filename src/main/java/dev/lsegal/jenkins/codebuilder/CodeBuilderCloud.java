@@ -60,6 +60,7 @@ public class CodeBuilderCloud extends Cloud {
 	private static final int DEFAULT_AGENT_TIMEOUT = 120;
 	private static final String DEFAULT_COMPUTE_TYPE = "BUILD_GENERAL1_SMALL";
 	private static final boolean DEFAULT_TERMINATE_AGENT = true;
+	private static final boolean DEFAULT_WINDOWS_AGENT = false;
 
 	static {
 		clearAllNodes();
@@ -80,6 +81,7 @@ public class CodeBuilderCloud extends Cloud {
 	private String jnlpImage;
 	private int agentTimeout;
 	private boolean terminateAgent;
+	private boolean windowsAgent;
 
 	private transient AWSCodeBuild client;
 
@@ -437,8 +439,18 @@ public class CodeBuilderCloud extends Cloud {
 		return terminateAgent;
 	}
 
+  public boolean isWindowsAgent() {
+		return windowsAgent;
+	}
+
+  	@DataBoundSetter
 	public void setTerminateAgent(boolean terminateAgent) {
 		this.terminateAgent = terminateAgent;
+	}
+
+  	@DataBoundSetter
+  	public void setWindowsAgent(boolean windowsAgent) {
+		this.windowsAgent = windowsAgent;
 	}
 
 	@Extension
@@ -466,6 +478,10 @@ public class CodeBuilderCloud extends Cloud {
 
 		public boolean getDefaultTerminateAgent() {
 			return DEFAULT_TERMINATE_AGENT;
+		}
+
+		public boolean getDefaultWindowsAgent() {
+			return DEFAULT_WINDOWS_AGENT;
 		}
 
 		public ListBoxModel doFillCredentialsIdItems() {

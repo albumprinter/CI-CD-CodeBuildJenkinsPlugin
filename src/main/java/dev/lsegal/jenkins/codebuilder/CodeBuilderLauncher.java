@@ -67,7 +67,7 @@ public class CodeBuilderLauncher extends JNLPLauncher {
     CodeBuilderComputer cbcpu = (CodeBuilderComputer) computer;
     StartBuildRequest req = new StartBuildRequest().withProjectName(cloud.getProjectName())
         .withSourceTypeOverride(SourceType.NO_SOURCE).withBuildspecOverride(buildspec(computer))
-        .withImageOverride(cloud.getJnlpImage()).withPrivilegedModeOverride(true).withTimeoutInMinutesOverride(480)
+        .withImageOverride(cloud.getJnlpImage()).withPrivilegedModeOverride(!cloud.isWindowsAgent()).withTimeoutInMinutesOverride(480)
         .withComputeTypeOverride(cloud.getComputeType());
 
     try {
@@ -117,15 +117,30 @@ public class CodeBuilderLauncher extends JNLPLauncher {
     String cmd = String.format("jenkins-agent -noreconnect -workDir \"$CODEBUILD_SRC_DIR\" -url \"%s\" \"%s\" \"%s\"",
         cloud.getJenkinsUrl(), computer.getJnlpMac(), n.getDisplayName());
     StringBuilder builder = new StringBuilder();
-    builder.append("version: 0.2\n");
-    builder.append("phases:\n");
-    builder.append("  pre_build:\n");
-    builder.append("    commands:\n");
-    builder.append("      - which dockerd-entrypoint.sh >/dev/null && dockerd-entrypoint.sh || exit 0\n");
-    builder.append("  build:\n");
-    builder.append("    commands:\n");
-    builder.append("      - " + cmd + " || exit 0\n");
-
+    if(cloud.isWindowsAgent()) {
+    	builder.append("version: 0.2\n");
+    	builder.append("env:\n");
+    	builder.append("  variables:\n");
+    	builder.append("    JENKINS_URL: \""+cloud.getJenkinsUrl()+"\"\n");
+    	builder.append("    JENKINS_AGENT_WORKDIR: \"$CODEBUILD_SRC_DIR\"\n");
+    	builder.append("    JENKINS_SECRET: \""+computer.getJnlpMac()+"\"\n");
+    	builder.append("    JENKINS_AGENT_NAME: \""+n.getDisplayName()+"\"\n");
+    	builder.append("phases:\n");
+    	builder.append("  build:\n");
+        builder.append("    commands:\n");
+        builder.append("      - powershell.exe -f C:/ProgramData/Jenkins/jenkins-agent.ps1");
+    	
+    } else {
+    	builder.append("version: 0.2\n");
+        builder.append("phases:\n");
+        builder.append("  pre_build:\n");
+        builder.append("    commands:\n");
+        builder.append("      - which dockerd-entrypoint.sh >/dev/null && dockerd-entrypoint.sh || exit 0\n");
+        builder.append("  build:\n");
+        builder.append("    commands:\n");
+        builder.append("      - " + cmd + " || exit 0\n");
+    }
+    
     return builder.toString();
   }
 }
