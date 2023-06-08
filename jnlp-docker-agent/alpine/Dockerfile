@@ -9,8 +9,8 @@ RUN apk add -U --no-cache docker
 
 # Also install awscli
 RUN apk add -U curl python3 python3-dev py-pip build-base
-RUN pip install awscli
-
+RUN pip install awscli --upgrade \
+  && aws configure set default.region eu-west-1
 # Setup jenkins-agent
 COPY ./dockerd-entrypoint.sh /usr/local/bin/dockerd-entrypoint.sh
 #RUN mv /usr/local/bin/jenkins-slave /usr/local/bin/jenkins-agent

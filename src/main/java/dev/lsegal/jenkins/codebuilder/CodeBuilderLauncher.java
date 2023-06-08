@@ -131,8 +131,11 @@ public class CodeBuilderLauncher extends JNLPLauncher {
         builder.append("      - powershell.exe -f C:/ProgramData/Jenkins/jenkins-agent.ps1");
     	
     } else {
-    	builder.append("version: 0.2\n");
-        builder.append("phases:\n");
+    	  builder.append("version: 0.2\n");
+        builder.append("env:\n");
+        builder.append("  variables:\n");
+        builder.append("    JENKINS_JAVA_BIN: /opt/java/openjdk/bin/java\n");        
+        builder.append("phases:\n");        
         builder.append("  pre_build:\n");
         builder.append("    commands:\n");
         builder.append("      - which dockerd-entrypoint.sh >/dev/null && dockerd-entrypoint.sh || exit 0\n");
