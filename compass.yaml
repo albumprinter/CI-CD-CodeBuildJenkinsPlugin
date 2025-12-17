@@ -1,0 +1,25 @@
+configVersion: 1
+name: CI-CD-CodeBuildJenkinsPlugin
+typeId: OTHER
+ownerId: 'ari:cloud:identity::team/f32fdc78-84a4-45dd-aeca-79ac865ec9f1'
+description: 'CodeBuilder Plugin for Jenkins: Dynamically provisions build agents
+  using AWS CodeBuild'
+fields:
+  tier: 4
+  isMonorepoProject: false
+labels:
+  - area-infrastructure
+  - bounded-context-not-set
+  - build-jenkins
+  - compliant-no
+  - deploy-jenkins
+  - domain-customer-platform
+  - hosting-aws
+  - language-java
+  - owner-sre
+  - system-ci-cd
+  - type-assets
+  - visibility-public
+links:
+  - type: REPOSITORY
+    url: https://github.com/albumprinter/CI-CD-CodeBuildJenkinsPlugin
