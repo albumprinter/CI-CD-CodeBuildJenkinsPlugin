@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.Future;
 
 import javax.annotation.CheckForNull;
@@ -153,15 +154,18 @@ public class CodeBuilderCloud extends Cloud {
     LOGGER.info("[CodeBuilder]: Removing all OFFLINE CodeBuilder nodes...");
     for (final Node n : nodes) {
       if (n instanceof CodeBuilderAgent) {
+        CodeBuilderAgent agent = ((CodeBuilderAgent) n);
+        Computer computer = agent.getComputer();
+        if (computer == null) {
+          LOGGER.error("[CodeBuilder]: Error determining whether agent '{}' is offline or not. Computer was null...", n.getDisplayName());
+          continue;
+        }
         try {
-          CodeBuilderAgent agent = ((CodeBuilderAgent) n);
-          if (agent.getComputer().isOffline() && !agent.getLauncher().isLaunchSupported()) {
+          if (computer.isOffline() && !agent.getLauncher().isLaunchSupported()) {
             LOGGER.error("[CodeBuilder]: Agent '{}' is offline and has already been launched. Removing it...", n.getDisplayName());
             agent.terminate();
             LOGGER.error("[CodeBuilder]: Agent '{}' was removed successfully", n.getDisplayName());
           }
-        } catch (NullPointerException e) {
-          LOGGER.error("[CodeBuilder]: Error determining whether agent '{}' is offline or not. Computer or launcher were null...", n.getDisplayName());
         } catch (InterruptedException | IOException e) {
           LOGGER.error("[CodeBuilder]: Failed to terminate OFFLINE agent '{}'", n.getDisplayName(), e);
         }
@@ -224,13 +228,9 @@ public class CodeBuilderCloud extends Cloud {
   public String getJenkinsUrl() {
     if (StringUtils.isNotBlank(jenkinsUrl)) {
       return jenkinsUrl;
-    } else {
-      JenkinsLocationConfiguration config = JenkinsLocationConfiguration.get();
-      if (config != null) {
-        return StringUtils.defaultIfBlank(config.getUrl(), "unknown");
-      }
     }
-    return "unknown";
+    JenkinsLocationConfiguration config = JenkinsLocationConfiguration.get();
+    return StringUtils.defaultIfBlank(config.getUrl(), "unknown");
   }
 
   /**
@@ -403,7 +403,7 @@ public class CodeBuilderCloud extends Cloud {
       // Get all `CodeBuilderAgent`s as `CodeBuilderAgent`s
       .filter(CodeBuilderAgent.class::isInstance).map(CodeBuilderAgent.class::cast)
       // Get all those who match the label name
-      .filter(a -> a.getLabel() == labelName)
+      .filter(a -> Objects.equals(a.getLabel(), labelName))
       // Get all those that haven't succesfully launched yet (those for which 'launching' is 'supported')
       .filter(a -> a.getLauncher().isLaunchSupported()).count();
     if (stillProvisioning > 0) {

@@ -78,17 +78,20 @@ class CodeBuilderAgent extends AbstractCloudSlave {
     listener.getLogger().println("[CodeBuilder]: Terminating agent: " + getDisplayName());
 
     if (getLauncher() instanceof CodeBuilderLauncher) {
-      String buildId = ((CodeBuilderComputer) getComputer()).getBuildId();
+      CodeBuilderComputer computer = (CodeBuilderComputer) getComputer();
+      if (computer == null) {
+        return;
+      }
+
+      String buildId = computer.getBuildId();
       if (StringUtils.isBlank(buildId)) {
         return;
       }
 
       try {
-        StopExecutors(((CodeBuilderComputer) getComputer()).getExecutors());
+        StopExecutors(computer.getExecutors());
         LOGGER.info("[CodeBuilder]: Stopping CodeBuild build ID {} running as agent {}", buildId, getDisplayName());
         cloud.getClient().stopBuild(new StopBuildRequest().withId(buildId));
-      } catch (NullPointerException e) {
-        LOGGER.info("[CodeBuilder]: It looks like CodeBuild build ID {} was already stopped.", buildId);
       } catch (ResourceNotFoundException e) {
         // this is fine. really.
       } catch (Exception e) {

@@ -1,7 +1,8 @@
 # lsegal/jnlp-docker-agent:alpine
 
 This directory contains a `Dockerfile` that builds the `lsegal/jnlp-docker-agent`
-image based on [jenkins/jnlp-slave][jnlpimage], adding in extra Docker support.
+image based on [jenkins/inbound-agent:alpine-jdk17][jnlpimage], adding in Docker
+and AWS CLI support.
 
 ## Building `alpine`
 
@@ -11,4 +12,4 @@ To build this image, run:
 docker build -t lsegal/jnlp-docker-agent:alpine .
 ```
 
-[jnlpimage]: https://hub.docker.com/r/jenkins/jnlp-slave/
+[jnlpimage]: https://hub.docker.com/r/jenkins/inbound-agent/
