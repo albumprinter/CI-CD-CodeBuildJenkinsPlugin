@@ -17,7 +17,7 @@
     <url>https://wiki.jenkins.io/display/JENKINS/CodeBuilder%3A+AWS+CodeBuild+Cloud+Agents+Plugin</url>
 
     <properties>
-        <jenkins.version>1.651.3</jenkins.version>
+        <jenkins.version>2.249.1</jenkins.version>
         <java.level>8</java.level>
     </properties>
 
@@ -76,7 +76,7 @@
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>aws-credentials</artifactId>
-            <version>1.23</version>
+            <version>1.32.1</version>
         </dependency>
     </dependencies>
 </project>
