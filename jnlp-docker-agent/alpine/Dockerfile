@@ -1,20 +1,17 @@
-FROM jenkins/jnlp-slave:alpine
+FROM jenkins/inbound-agent:alpine-jdk17
 LABEL maintainer="Loren Segal <lsegal@soen.ca>"
 
 # Simplify permissions in this containerized instance
 USER root
 
-# Install Docker
-RUN apk add -U --no-cache docker
+# Install Docker (for docker-in-docker builds) and the AWS CLI v2, both from
+# the Alpine community repository.
+RUN apk add -U --no-cache docker aws-cli
 
-# Also install awscli
-RUN apk add -U curl python python-dev py-pip build-base
-RUN pip install awscli
-
-# Setup jenkins-agent
+# Setup docker-in-docker entrypoint helper. The inbound-agent image already
+# provides /usr/local/bin/jenkins-agent, so no rename is needed.
 COPY ./dockerd-entrypoint.sh /usr/local/bin/dockerd-entrypoint.sh
-RUN mv /usr/local/bin/jenkins-slave /usr/local/bin/jenkins-agent
-RUN chmod +x /usr/local/bin/jenkins-agent /usr/local/bin/dockerd-entrypoint.sh
+RUN chmod +x /usr/local/bin/dockerd-entrypoint.sh
 
 # Entrypoint
 COPY ./entrypoint.sh /usr/local/bin/entrypoint.sh
