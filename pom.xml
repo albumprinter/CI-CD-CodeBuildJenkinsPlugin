@@ -22,6 +22,10 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <maven.compiler.release>17</maven.compiler.release>
+        <!-- Parent POM 4.88 pins jenkins-test-harness 2225 (Jetty 10 + javax.servlet),
+             which cannot boot the jakarta-based Jenkins 2.479.3 used here. Override to
+             a Jetty 12 / jakarta.servlet harness so the injected web smoke test runs. -->
+        <jenkins-test-harness.version>2391.v9b_3e2d3351a_2</jenkins-test-harness.version>
     </properties>
 
     <developers>
