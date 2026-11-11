@@ -5,6 +5,7 @@ import java.util.concurrent.TimeoutException;
 
 import javax.annotation.Nonnull;
 
+import com.amazonaws.services.codebuild.model.BatchGetBuildsRequest;
 import com.amazonaws.services.codebuild.model.SourceType;
 import com.amazonaws.services.codebuild.model.StartBuildRequest;
 import com.amazonaws.services.codebuild.model.StartBuildResult;
@@ -25,6 +26,10 @@ import hudson.util.StreamTaskListener;
  */
 public class CodeBuilderLauncher extends JNLPLauncher {
   private static final int sleepMs = 500;
+  private static final int MAX_STARTUP_ATTEMPTS = 60;
+  private static final int STARTUP_RETRY_SLEEP_SECONDS = 5;
+  private static final int MIN_CONNECTED_SECONDS = 30;
+  private static final int BUILD_CHECK_INTERVAL_MS = 15000;
   private static final Logger LOGGER = LoggerFactory.getLogger(CodeBuilderLauncher.class);
 
   private final CodeBuilderCloud cloud;
@@ -83,6 +88,9 @@ public class CodeBuilderLauncher extends JNLPLauncher {
           return;
         }
         Thread.sleep(sleepMs);
+        if ((i * sleepMs) % BUILD_CHECK_INTERVAL_MS == BUILD_CHECK_INTERVAL_MS - sleepMs && buildEnded(buildId)) {
+          throw new IllegalStateException("CodeBuild build " + buildId + " ended before the agent connected");
+        }
       }
       throw new TimeoutException("Timed out while waiting for agent " + node + " to start for build ID: " + buildId);
 
@@ -98,6 +106,17 @@ public class CodeBuilderLauncher extends JNLPLauncher {
           LOGGER.error("Failed to terminate agent: {}", node.getDisplayName(), e);
         }
       }
+    }
+  }
+
+  /** True when CodeBuild reports the build as finished; a lookup failure counts as "not ended". */
+  private boolean buildEnded(String buildId) {
+    try {
+      return cloud.getClient().batchGetBuilds(new BatchGetBuildsRequest().withIds(buildId)).getBuilds().stream()
+          .anyMatch(b -> Boolean.TRUE.equals(b.getBuildComplete()));
+    } catch (Exception e) {
+      LOGGER.warn("[CodeBuilder]: Could not check status of build {}: {}", buildId, e.getMessage());
+      return false;
     }
   }
 
@@ -124,8 +143,30 @@ public class CodeBuilderLauncher extends JNLPLauncher {
     builder.append("      - which dockerd-entrypoint.sh >/dev/null && dockerd-entrypoint.sh || exit 0\n");
     builder.append("  build:\n");
     builder.append("    commands:\n");
-    builder.append("      - " + cmd + " || exit 0\n");
+    builder.append("      - |\n");
+    for (String line : startupRetryScript(cmd).split("\n")) {
+      builder.append("        " + line + "\n");
+    }
 
     return builder.toString();
+  }
+
+  /**
+   * Wraps the agent command so that an agent which exits quickly (Jenkins not yet accepting agent connections, e.g.
+   * 503 right after a restart) is retried instead of dying for good. The agent still runs with -noreconnect; a run
+   * that lasted longer than {@link #MIN_CONNECTED_SECONDS} is treated as a real session and ends the build as before.
+   * Plain POSIX sh: the agent images do not all ship curl.
+   */
+  /* package */ static String startupRetryScript(String cmd) {
+    return String.join("\n",
+        "attempt=0",
+        "while [ $attempt -lt " + MAX_STARTUP_ATTEMPTS + " ]; do",
+        "  started=$(date +%s)",
+        "  " + cmd + " && break",
+        "  [ $(( $(date +%s) - started )) -ge " + MIN_CONNECTED_SECONDS + " ] && break",
+        "  attempt=$((attempt + 1))",
+        "  sleep " + STARTUP_RETRY_SLEEP_SECONDS,
+        "done",
+        "exit 0");
   }
 }
